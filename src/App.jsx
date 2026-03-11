@@ -144,29 +144,30 @@ function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
         </p>
 
         {/* Search */}
-        <div style={{ width: "100%", maxWidth: "580px", background: "#FFFDF7", border: `1.5px solid ${focused ? "#8B4513" : "#D4CBB8"}`, borderRadius: "18px", padding: "6px 6px 6px 20px", display: "flex", alignItems: "center", gap: "12px", boxShadow: focused ? "0 0 0 4px rgba(139,69,19,0.1), 0 4px 20px rgba(101,76,45,0.12)" : "0 2px 12px rgba(101,76,45,0.08)", transition: "all 0.25s ease" }}>
-          <span style={{ color: focused ? "#8B4513" : "#9C8B74", flexShrink: 0, display: "flex", transition: "color 0.2s" }}>
-            {isUrl ? <IconLink /> : <IconSearch />}
-          </span>
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && submit()}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder="e.g. Sony WH-1000XM5, or paste a URL..."
-            style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "15px", color: "#2C2416", fontFamily: "system-ui, sans-serif", padding: "11px 0" }}
-          />
-          <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-            {/* Camera button */}
+        <div style={{ width: "100%", maxWidth: "580px", display: "flex", flexDirection: "column", gap: "8px" }}>
+          {/* Input row */}
+          <div style={{ width: "100%", background: "#FFFDF7", border: `1.5px solid ${focused ? "#8B4513" : "#D4CBB8"}`, borderRadius: "18px", padding: "6px 12px 6px 20px", display: "flex", alignItems: "center", gap: "10px", boxShadow: focused ? "0 0 0 4px rgba(139,69,19,0.1), 0 4px 20px rgba(101,76,45,0.12)" : "0 2px 12px rgba(101,76,45,0.08)", transition: "all 0.25s ease" }}>
+            <span style={{ color: focused ? "#8B4513" : "#9C8B74", flexShrink: 0, display: "flex", transition: "color 0.2s" }}>
+              {isUrl ? <IconLink /> : <IconSearch />}
+            </span>
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && submit()}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="Product name or URL..."
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "15px", color: "#2C2416", fontFamily: "system-ui, sans-serif", padding: "11px 0", minWidth: 0 }}
+            />
+            {/* Camera button inline */}
             <button
               onClick={() => cameraRef.current?.click()}
               disabled={cameraLoading}
               title="Take a photo to identify product"
-              style={{ padding: "11px 13px", background: "rgba(101,76,45,0.06)", color: cameraLoading ? "#8B4513" : "#9C8B74", border: "1px solid #D4CBB8", borderRadius: "13px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s", flexShrink: 0 }}
-              onMouseEnter={e => { e.currentTarget.style.background="#F0E6D3"; e.currentTarget.style.color="#8B4513"; e.currentTarget.style.borderColor="#C4B49A"; }}
-              onMouseLeave={e => { e.currentTarget.style.background="rgba(101,76,45,0.06)"; e.currentTarget.style.color=cameraLoading?"#8B4513":"#9C8B74"; e.currentTarget.style.borderColor="#D4CBB8"; }}
+              style={{ padding: "8px", background: "transparent", color: cameraLoading ? "#8B4513" : "#9C8B74", border: "none", borderRadius: "10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s", flexShrink: 0 }}
+              onMouseEnter={e => { e.currentTarget.style.background="#F0E6D3"; e.currentTarget.style.color="#8B4513"; }}
+              onMouseLeave={e => { e.currentTarget.style.background="transparent"; e.currentTarget.style.color=cameraLoading?"#8B4513":"#9C8B74"; }}
             >
               {cameraLoading ? (
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
@@ -174,15 +175,14 @@ function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
                 </svg>
               ) : <IconCamera />}
             </button>
-            {/* Hidden file input - accepts camera on mobile, files on desktop */}
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} style={{ display: "none" }} />
-            {/* Get Guide button */}
-            <button onClick={submit} disabled={!query.trim()}
-              style={{ padding: "11px 22px", background: query.trim() ? "#8B4513" : "rgba(101,76,45,0.06)", color: query.trim() ? "#FFFDF7" : "#C4B49A", border: "none", borderRadius: "13px", cursor: query.trim() ? "pointer" : "default", fontSize: "14px", fontWeight: "600", fontFamily: "system-ui, sans-serif", transition: "all 0.2s", whiteSpace: "nowrap", boxShadow: query.trim() ? "0 4px 16px rgba(139,69,19,0.3)" : "none" }}
-            >
-              Get Guide →
-            </button>
           </div>
+          {/* Get Guide button — full width below on all screens */}
+          <button onClick={submit} disabled={!query.trim()}
+            style={{ width: "100%", padding: "14px", background: query.trim() ? "#8B4513" : "rgba(101,76,45,0.06)", color: query.trim() ? "#FFFDF7" : "#C4B49A", border: "none", borderRadius: "14px", cursor: query.trim() ? "pointer" : "default", fontSize: "15px", fontWeight: "600", fontFamily: "system-ui, sans-serif", transition: "all 0.2s", boxShadow: query.trim() ? "0 4px 16px rgba(139,69,19,0.3)" : "none" }}
+          >
+            Get Guide →
+          </button>
         </div>
 
         {/* Camera preview */}
