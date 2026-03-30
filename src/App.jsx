@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 const STORAGE_KEY = "manuals-ai_products";
 
@@ -167,6 +167,56 @@ function Drawer({ open, onClose, products, onSelectProduct, onDeleteProduct }) {
   );
 }
 
+// ─── HOME / LOADING KEYFRAMES ────────────────────────────────────────────────
+const HOME_KEYFRAMES = `
+@keyframes cmdPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 5px rgba(74,222,128,0); }
+}
+@keyframes cmdGridScroll {
+  0%   { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+@keyframes cmdFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes omniGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+  50%       { box-shadow: 0 0 32px 4px rgba(99,102,241,0.18); }
+}
+@keyframes scanSweep {
+  0%   { top: 4%; opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 96%; opacity: 0; }
+}
+@keyframes drawTop    { from { stroke-dashoffset: 120; } to { stroke-dashoffset: 0; } }
+@keyframes drawRight  { from { stroke-dashoffset: 80;  } to { stroke-dashoffset: 0; } }
+@keyframes drawBottom { from { stroke-dashoffset: 120; } to { stroke-dashoffset: 0; } }
+@keyframes drawLeft   { from { stroke-dashoffset: 80;  } to { stroke-dashoffset: 0; } }
+@keyframes drawPerspTop    { from { stroke-dashoffset: 90; } to { stroke-dashoffset: 0; } }
+@keyframes drawPerspRight  { from { stroke-dashoffset: 70; } to { stroke-dashoffset: 0; } }
+@keyframes scanRing {
+  0%   { transform: scale(0.8); opacity: 0; }
+  30%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+@keyframes dataFly {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.9; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+@keyframes phaseIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes termBlink {
+  0%, 100% { opacity: 1; } 50% { opacity: 0; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+`;
+
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
   const [query, setQuery] = useState("");
@@ -207,43 +257,117 @@ function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F0E8", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
-      {/* Background glows */}
-      <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: "700px", height: "700px", background: "radial-gradient(circle, rgba(101,76,45,0.07) 0%, transparent 65%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: "40%", left: "20%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(101,76,45,0.05) 0%, transparent 65%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: "25%", right: "15%", width: "300px", height: "300px", background: "radial-gradient(circle, rgba(101,76,45,0.04) 0%, transparent 65%)", pointerEvents: "none" }} />
+    <div style={{ minHeight: "100vh", background: "#080c14", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+      <style>{HOME_KEYFRAMES}</style>
 
-      {/* Top bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 28px", position: "relative", zIndex: 10 }}>
+      {/* Scrolling grid background */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+        backgroundImage: "linear-gradient(rgba(99,102,241,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.06) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+        animation: "cmdGridScroll 4s linear infinite",
+      }} />
+
+      {/* Ambient color blobs */}
+      <div style={{ position: "absolute", top: "-20%", left: "50%", transform: "translateX(-50%)", width: "80vw", height: "80vw", maxWidth: "700px", maxHeight: "700px", background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 65%)", pointerEvents: "none", zIndex: 0 }} />
+      <div style={{ position: "absolute", bottom: "0", right: "-10%", width: "50vw", height: "50vw", background: "radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 65%)", pointerEvents: "none", zIndex: 0 }} />
+
+      {/* Status bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", position: "relative", zIndex: 10 }}>
         <button onClick={onOpenDrawer}
-          style={{ background: "rgba(101,76,45,0.07)", border: "1px solid #D4CBB8", borderRadius: "10px", color: "#6B5B45", cursor: "pointer", padding: "8px 14px", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontFamily: "system-ui, sans-serif", transition: "all 0.2s" }}
-          onMouseEnter={e => { e.currentTarget.style.background="rgba(101,76,45,0.07)"; e.currentTarget.style.color="#2C2416"; }}
-          onMouseLeave={e => { e.currentTarget.style.background="rgba(101,76,45,0.07)"; e.currentTarget.style.color="#6B5B45"; }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "rgba(255,255,255,0.55)", cursor: "pointer", padding: "7px 14px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontFamily: "system-ui, sans-serif", transition: "all 0.2s", letterSpacing: "0.3px" }}
+          onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; }}
+          onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.55)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
         >
-          <IconMenu />
-          <span>My Products</span>
+          <IconMenu /><span>MY PRODUCTS</span>
         </button>
-        <div style={{ display: "flex", alignItems: "center", gap: "7px", color: "#9C8B74" }}>
-          <span style={{ fontSize: "12px", fontFamily: "system-ui, sans-serif", letterSpacing: "0.3px" }}>Powered by Claude AI</span>
+
+        {/* Status pill */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: "100px", padding: "5px 12px" }}>
+          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", animation: "cmdPulse 2s ease-in-out infinite" }} />
+          <span style={{ fontSize: "11px", fontFamily: "system-ui, sans-serif", color: "rgba(74,222,128,0.85)", letterSpacing: "1px", fontWeight: "600" }}>CLAUDE ONLINE</span>
         </div>
       </div>
 
-      {/* Hero */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px 100px", position: "relative", zIndex: 10 }}>
-        <h1 style={{ fontFamily: "'Georgia', serif", fontSize: "clamp(52px, 9vw, 96px)", fontWeight: "700", color: "#2C2416", margin: "0 0 32px", textAlign: "center", lineHeight: 1.05, letterSpacing: "-2.5px" }}>
-          Manuals<span style={{ color: "#8B4513" }}>.ai</span>
+      {/* Hero — command center content */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px 220px", position: "relative", zIndex: 10 }}>
+
+        {/* Logo mark */}
+        <div style={{ animation: "cmdFloat 4s ease-in-out infinite", marginBottom: "28px" }}>
+          <div style={{ width: "72px", height: "72px", borderRadius: "20px", background: "linear-gradient(135deg, rgba(99,102,241,0.25), rgba(14,165,233,0.15))", border: "1px solid rgba(99,102,241,0.35)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 40px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.1)" }}>
+            <span style={{ fontSize: "34px" }}>📡</span>
+          </div>
+        </div>
+
+        <p style={{ margin: "0 0 6px", fontSize: "11px", letterSpacing: "3px", color: "rgba(99,102,241,0.7)", fontFamily: "system-ui, sans-serif", fontWeight: "700" }}>COMMAND CENTER</p>
+        <h1 style={{ fontFamily: "'Georgia', serif", fontSize: "clamp(44px, 8vw, 86px)", fontWeight: "700", color: "#fff", margin: "0 0 16px", textAlign: "center", lineHeight: 1.05, letterSpacing: "-2px",
+          background: "linear-gradient(135deg, #fff 30%, rgba(99,102,241,0.9))",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+        }}>
+          Manuals<span style={{ WebkitTextFillColor: "rgba(99,102,241,1)" }}>.ai</span>
         </h1>
-
-
-        <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "15px", color: "#6B5B45", margin: "-24px 0 36px", textAlign: "center", maxWidth: "420px", lineHeight: 1.65 }}>
-          Type a product name or paste a shop URL — get a clear, categorized guide in seconds.
+        <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "14px", color: "rgba(255,255,255,0.4)", margin: "0 0 40px", textAlign: "center", maxWidth: "360px", lineHeight: 1.7 }}>
+          Drop a product name, URL, or snap a photo —<br />get your guide in seconds.
         </p>
 
-        {/* Search */}
-        <div style={{ width: "100%", maxWidth: "580px", display: "flex", flexDirection: "column", gap: "8px" }}>
-          {/* Input row */}
-          <div style={{ width: "100%", background: "#EDE8DC", border: `1.5px solid ${focused ? "#8B4513" : "#D4CBB8"}`, borderRadius: "18px", padding: "6px 12px 6px 20px", display: "flex", alignItems: "center", gap: "10px", boxShadow: focused ? "0 0 0 4px rgba(101,76,45,0.07), 0 4px 20px rgba(101,76,45,0.07)" : "0 2px 12px rgba(101,76,45,0.08)", transition: "all 0.25s ease" }}>
-            <span style={{ color: focused ? "#8B4513" : "#9C8B74", flexShrink: 0, display: "flex", transition: "color 0.2s" }}>
+        {/* Stat chips */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "40px", flexWrap: "wrap", justifyContent: "center" }}>
+          {[
+            { label: "AI-powered", icon: "⚡" },
+            { label: "Instant guides", icon: "📖" },
+            { label: "Any product", icon: "🔍" },
+          ].map(({ label, icon }) => (
+            <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "100px", padding: "5px 14px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "12px" }}>{icon}</span>
+              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", fontFamily: "system-ui, sans-serif", letterSpacing: "0.3px" }}>{label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick hints */}
+        <div style={{ display: "flex", gap: "7px", flexWrap: "wrap", justifyContent: "center" }}>
+          {["Instant Pot Duo 7-in-1", "Dyson V15 Detect", "IKEA KALLAX"].map(hint => (
+            <button key={hint} onClick={() => { setQuery(hint); setTimeout(() => inputRef.current?.focus(), 0); }}
+              style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "100px", padding: "5px 12px", color: "rgba(255,255,255,0.45)", fontSize: "12px", fontFamily: "system-ui, sans-serif", cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,102,241,0.18)"; e.currentTarget.style.color = "rgba(255,255,255,0.85)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(99,102,241,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.2)"; }}
+            >
+              {hint}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── FLOATING OMNI-SEARCH (thumb zone) ── */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, padding: "16px 16px calc(16px + env(safe-area-inset-bottom))" }}>
+        {/* Camera preview strip */}
+        {previewUrl && (
+          <div style={{ maxWidth: "580px", margin: "0 auto 10px", borderRadius: "14px", overflow: "hidden", border: "1px solid rgba(99,102,241,0.3)", position: "relative" }}>
+            <img src={previewUrl} alt="Captured product" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", filter: "brightness(0.6)" }} />
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px" }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite", color: "#6366f1" }}>
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
+              </svg>
+              <p style={{ margin: 0, fontSize: "13px", color: "#fff", fontFamily: "system-ui, sans-serif", fontWeight: "600" }}>Identifying product…</p>
+            </div>
+          </div>
+        )}
+
+        {/* The omni-bar */}
+        <div style={{ maxWidth: "580px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{
+            background: "rgba(15,20,35,0.85)",
+            border: `1.5px solid ${focused ? "rgba(99,102,241,0.7)" : "rgba(255,255,255,0.1)"}`,
+            borderRadius: "20px",
+            padding: "6px 10px 6px 18px",
+            display: "flex", alignItems: "center", gap: "10px",
+            backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+            boxShadow: focused
+              ? "0 0 0 3px rgba(99,102,241,0.15), 0 8px 40px rgba(0,0,0,0.5)"
+              : "0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+            transition: "all 0.25s ease",
+            animation: focused ? "none" : "omniGlow 3s ease-in-out infinite",
+          }}>
+            <span style={{ color: focused ? "rgba(99,102,241,0.9)" : "rgba(255,255,255,0.3)", flexShrink: 0, display: "flex", transition: "color 0.2s" }}>
               {isUrl ? <IconLink /> : <IconSearch />}
             </span>
             <input
@@ -253,110 +377,204 @@ function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
               onKeyDown={e => e.key === "Enter" && submit()}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
-              placeholder="Product name or URL..."
-              style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "15px", color: "#2C2416", fontFamily: "system-ui, sans-serif", padding: "11px 0", minWidth: 0 }}
+              placeholder="Product name or paste URL…"
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "15px", color: "#fff", fontFamily: "system-ui, sans-serif", padding: "12px 0", minWidth: 0 }}
             />
-            {/* Camera button inline */}
+            {/* Camera */}
             <button
               onClick={() => cameraRef.current?.click()}
               disabled={cameraLoading}
               title="Take a photo to identify product"
-              style={{ padding: "8px", background: "transparent", color: cameraLoading ? "#8B4513" : "#9C8B74", border: "none", borderRadius: "10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s", flexShrink: 0 }}
-              onMouseEnter={e => { e.currentTarget.style.background="#F5F0E8"; e.currentTarget.style.color="#8B4513"; }}
-              onMouseLeave={e => { e.currentTarget.style.background="transparent"; e.currentTarget.style.color=cameraLoading?"#8B4513":"#9C8B74"; }}
+              style={{ padding: "9px", background: "rgba(255,255,255,0.05)", color: cameraLoading ? "#6366f1" : "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "11px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s", flexShrink: 0 }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,102,241,0.15)"; e.currentTarget.style.color = "#6366f1"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = cameraLoading ? "#6366f1" : "rgba(255,255,255,0.35)"; }}
             >
-              {cameraLoading ? (
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/>
-                </svg>
-              ) : <IconCamera />}
+              {cameraLoading
+                ? <svg width="19" height="19" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
+                : <IconCamera />}
             </button>
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} style={{ display: "none" }} />
-          </div>
-          {/* Get Guide button — full width below on all screens */}
-          <button onClick={submit} disabled={!query.trim()}
-            style={{ width: "100%", padding: "14px", background: query.trim() ? "#8B4513" : "rgba(101,76,45,0.06)", color: query.trim() ? "#EDE8DC" : "#C4B49A", border: "none", borderRadius: "14px", cursor: query.trim() ? "pointer" : "default", fontSize: "15px", fontWeight: "600", fontFamily: "system-ui, sans-serif", transition: "all 0.2s", boxShadow: query.trim() ? "0 4px 16px rgba(101,76,45,0.15)" : "none" }}
-          >
-            Get Guide →
-          </button>
-        </div>
 
-        {/* Camera preview */}
-        {previewUrl && (
-          <div style={{ width: "100%", maxWidth: "580px", marginTop: "12px", borderRadius: "14px", overflow: "hidden", border: "1px solid #C4B49A", position: "relative" }}>
-            <img src={previewUrl} alt="Captured product" style={{ width: "100%", maxHeight: "220px", objectFit: "cover", filter: "brightness(0.7)" }} />
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px" }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite", color: "#8B4513" }}>
-                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
-              </svg>
-              <p style={{ margin: 0, fontSize: "13px", color: "#EDE8DC", fontFamily: "system-ui, sans-serif", fontWeight: "600" }}>Identifying product…</p>
-            </div>
-          </div>
-        )}
-
-        {/* Quick hints */}
-        <div style={{ display: "flex", gap: "8px", marginTop: "18px", flexWrap: "wrap", justifyContent: "center" }}>
-          {["Instant Pot Duo 7-in-1", "Dyson V15 Detect", "IKEA KALLAX shelf"].map(hint => (
-            <button key={hint} onClick={() => { setQuery(hint); setTimeout(() => inputRef.current?.focus(), 0); }}
-              style={{ background: "rgba(101,76,45,0.06)", border: "1px solid #D4CBB8", borderRadius: "100px", padding: "5px 13px", color: "#9C8B74", fontSize: "12px", fontFamily: "system-ui, sans-serif", cursor: "pointer", transition: "all 0.15s" }}
-              onMouseEnter={e => { e.currentTarget.style.background="#F5F0E8"; e.currentTarget.style.color="#6B5B45"; e.currentTarget.style.borderColor="#C4B49A"; }}
-              onMouseLeave={e => { e.currentTarget.style.background="rgba(101,76,45,0.06)"; e.currentTarget.style.color="#9C8B74"; e.currentTarget.style.borderColor="#D4CBB8"; }}
+            {/* Submit button — inline on omnibar */}
+            <button onClick={submit} disabled={!query.trim()}
+              style={{ padding: "9px 18px", background: query.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.04)", color: query.trim() ? "#fff" : "rgba(255,255,255,0.2)", border: "none", borderRadius: "13px", cursor: query.trim() ? "pointer" : "default", fontSize: "13px", fontWeight: "700", fontFamily: "system-ui, sans-serif", transition: "all 0.2s", flexShrink: 0, letterSpacing: "0.3px",
+                boxShadow: query.trim() ? "0 4px 16px rgba(99,102,241,0.4)" : "none",
+              }}
+              onMouseEnter={e => { if (query.trim()) e.currentTarget.style.boxShadow = "0 6px 24px rgba(99,102,241,0.6)"; }}
+              onMouseLeave={e => { if (query.trim()) e.currentTarget.style.boxShadow = "0 4px 16px rgba(99,102,241,0.4)"; }}
             >
-              {hint}
+              Go →
             </button>
-          ))}
+          </div>
         </div>
       </div>
 
       {/* Error toast */}
       {error && (
-        <div style={{ position: "fixed", bottom: "28px", left: "50%", transform: "translateX(-50%)", background: "#F5F0E8", border: "1px solid #D4CBB8", borderRadius: "14px", padding: "13px 18px", display: "flex", alignItems: "center", gap: "10px", zIndex: 100, maxWidth: "500px", width: "calc(100% - 48px)", boxShadow: "0 8px 40px rgba(101,76,45,0.35)" }}>
+        <div style={{ position: "fixed", bottom: "120px", left: "50%", transform: "translateX(-50%)", background: "rgba(15,20,35,0.95)", border: "1px solid rgba(220,38,38,0.4)", backdropFilter: "blur(20px)", borderRadius: "14px", padding: "13px 18px", display: "flex", alignItems: "center", gap: "10px", zIndex: 100, maxWidth: "500px", width: "calc(100% - 48px)", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }}>
           <span>⚠️</span>
-          <span style={{ flex: 1, fontSize: "13px", color: "#DC2626", fontFamily: "system-ui, sans-serif" }}>{error}</span>
-          <button onClick={onDismissError} style={{ background: "none", border: "none", color: "#DC2626", cursor: "pointer", padding: "2px", display: "flex" }}><IconX /></button>
+          <span style={{ flex: 1, fontSize: "13px", color: "#f87171", fontFamily: "system-ui, sans-serif" }}>{error}</span>
+          <button onClick={onDismissError} style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", padding: "2px", display: "flex" }}><IconX /></button>
         </div>
       )}
     </div>
   );
 }
 
-// ─── LOADING SCREEN ───────────────────────────────────────────────────────────
-function LoadingScreen({ query }) {
-  const [dots, setDots] = useState(".");
-  const [phase, setPhase] = useState(0);
-  const isUrl = query.startsWith("http://") || query.startsWith("https://");
-
-  useEffect(() => {
-    const t = setInterval(() => setDots(d => d.length >= 3 ? "." : d + "."), 500);
-    return () => clearInterval(t);
-  }, []);
-  useEffect(() => {
-    if (!isUrl) return;
-    const t = setTimeout(() => setPhase(1), 2800);
-    return () => clearTimeout(t);
-  }, [isUrl]);
-
-  const phases = isUrl ? ["Fetching product page", "Generating your guide"] : ["Generating your guide"];
+// ─── DIGITIZE ANIMATION ───────────────────────────────────────────────────────
+function DigitizeBox({ color }) {
+  // Particles shot off during scan
+  const particles = Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    dx: `${(Math.random() - 0.5) * 90}px`,
+    dy: `${-(Math.random() * 60 + 20)}px`,
+    delay: `${Math.random() * 1.8}s`,
+    size: Math.random() * 3 + 1.5,
+  }));
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F0E8", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-      <div style={{ textAlign: "center", maxWidth: "380px" }}>
-        <div style={{ fontSize: "56px", marginBottom: "28px", filter: "drop-shadow(0 0 20px rgba(139,69,19,0.2))" }}>
-          {isUrl && phase === 0 ? "🌐" : "🤖"}
+    <div style={{ position: "relative", width: "140px", height: "120px", margin: "0 auto 40px" }}>
+      {/* Outer ring pulse */}
+      <div style={{ position: "absolute", inset: "-18px", borderRadius: "50%", border: `1px solid ${color}55`, animation: "scanRing 2.4s ease-out infinite" }} />
+      <div style={{ position: "absolute", inset: "-10px", borderRadius: "50%", border: `1px solid ${color}33`, animation: "scanRing 2.4s ease-out infinite 0.6s" }} />
+
+      {/* SVG wireframe box */}
+      <svg viewBox="0 0 140 120" width="140" height="120" style={{ position: "absolute", inset: 0 }}>
+        {/* Front face */}
+        <rect x="20" y="35" width="80" height="60" rx="4" fill="none" stroke={color} strokeWidth="1.5"
+          strokeDasharray="120" style={{ animation: "drawTop 0.6s ease forwards, drawBottom 0.6s ease 0.2s forwards" }} />
+        {/* Top perspective lines */}
+        <line x1="20" y1="35" x2="45" y2="15" stroke={color} strokeWidth="1.5" strokeDasharray="90" opacity="0.7"
+          style={{ animation: "drawPerspTop 0.5s ease 0.3s forwards" }} />
+        <line x1="100" y1="35" x2="125" y2="15" stroke={color} strokeWidth="1.5" strokeDasharray="90" opacity="0.7"
+          style={{ animation: "drawPerspTop 0.5s ease 0.4s forwards" }} />
+        {/* Top face */}
+        <line x1="45" y1="15" x2="125" y2="15" stroke={color} strokeWidth="1.5" strokeDasharray="90" opacity="0.7"
+          style={{ animation: "drawTop 0.5s ease 0.5s forwards" }} />
+        {/* Right perspective line */}
+        <line x1="125" y1="15" x2="125" y2="75" stroke={color} strokeWidth="1.5" strokeDasharray="70" opacity="0.7"
+          style={{ animation: "drawRight 0.5s ease 0.55s forwards" }} />
+        <line x1="100" y1="95" x2="125" y2="75" stroke={color} strokeWidth="1.5" strokeDasharray="70" opacity="0.5"
+          style={{ animation: "drawPerspRight 0.4s ease 0.65s forwards" }} />
+
+        {/* Internal grid lines — depth effect */}
+        {[50, 70, 90].map((x, i) => (
+          <line key={x} x1={x} y1="35" x2={x} y2="95" stroke={color} strokeWidth="0.5" opacity="0.2"
+            style={{ animation: `drawRight 0.4s ease ${0.7 + i * 0.1}s forwards` }} />
+        ))}
+        {[55, 70].map((y, i) => (
+          <line key={y} x1="20" y1={y} x2="100" y2={y} stroke={color} strokeWidth="0.5" opacity="0.2"
+            style={{ animation: `drawTop 0.4s ease ${0.8 + i * 0.1}s forwards` }} />
+        ))}
+      </svg>
+
+      {/* Scan line sweeping over the box */}
+      <div style={{
+        position: "absolute", left: "14%", right: "0",
+        height: "2px",
+        background: `linear-gradient(90deg, transparent, ${color}, ${color}cc, transparent)`,
+        boxShadow: `0 0 12px 3px ${color}88`,
+        animation: "scanSweep 1.8s ease-in-out infinite",
+        top: "35px",
+      }} />
+
+      {/* Data particles */}
+      {particles.map(p => (
+        <div key={p.id} style={{
+          position: "absolute",
+          left: `${20 + Math.random() * 80}px`,
+          top: `${35 + Math.random() * 60}px`,
+          width: `${p.size}px`, height: `${p.size}px`,
+          borderRadius: "1px",
+          background: color,
+          opacity: 0,
+          // @ts-ignore
+          "--dx": p.dx, "--dy": p.dy,
+          animation: `dataFly 1.6s ease-out ${p.delay} infinite`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ─── LOADING SCREEN ───────────────────────────────────────────────────────────
+function LoadingScreen({ query }) {
+  const [phase, setPhase] = useState(0);
+  const [tick, setTick] = useState(0);
+  const isUrl = query.startsWith("http://") || query.startsWith("https://");
+
+  const allPhases = isUrl
+    ? ["Fetching product page", "Parsing product data", "Crafting your guide"]
+    : ["Scanning product", "Analyzing specifications", "Crafting your guide"];
+
+  useEffect(() => {
+    const t = setInterval(() => setTick(n => n + 1), 500);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    if (phase >= allPhases.length - 1) return;
+    const t = setTimeout(() => setPhase(p => p + 1), 2600);
+    return () => clearTimeout(t);
+  }, [phase, allPhases.length]);
+
+  const accentColor = phase === 0 ? "#6366f1" : phase === 1 ? "#0ea5e9" : "#4ade80";
+  const dots = ".".repeat((tick % 3) + 1);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#080c14", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", position: "relative", overflow: "hidden" }}>
+      <style>{HOME_KEYFRAMES}</style>
+
+      {/* Grid bg */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
+        backgroundImage: "linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px)",
+        backgroundSize: "40px 40px", animation: "cmdGridScroll 4s linear infinite",
+      }} />
+
+      {/* Ambient glow matching current phase */}
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "60vw", height: "60vw", background: `radial-gradient(circle, ${accentColor}14 0%, transparent 65%)`, pointerEvents: "none", transition: "background 0.8s ease" }} />
+
+      <div style={{ textAlign: "center", maxWidth: "400px", position: "relative", zIndex: 1 }}>
+        {/* Digitize animation */}
+        <DigitizeBox color={accentColor} />
+
+        {/* Phase label */}
+        <div key={phase} style={{ animation: "phaseIn 0.4s ease forwards" }}>
+          <p style={{ margin: "0 0 4px", fontSize: "11px", letterSpacing: "2.5px", color: `${accentColor}bb`, fontFamily: "system-ui, sans-serif", fontWeight: "700" }}>
+            STEP {phase + 1} OF {allPhases.length}
+          </p>
+          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "22px", color: "#fff", margin: "0 0 12px", fontWeight: "700" }}>
+            {allPhases[phase]}{dots}
+          </h2>
         </div>
-        <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "24px", color: "#2C2416", margin: "0 0 10px", fontWeight: "700" }}>{phases[phase]}{dots}</h2>
-        <p style={{ fontSize: "14px", color: "#6B5B45", fontFamily: "system-ui, sans-serif", margin: "0 0 28px", fontStyle: "italic" }}>
-          "{query.length > 55 ? query.slice(0, 55) + "…" : query}"
+
+        {/* Query label */}
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)", fontFamily: "system-ui, sans-serif", margin: "0 0 28px", fontStyle: "italic" }}>
+          "{query.length > 52 ? query.slice(0, 52) + "…" : query}"
         </p>
-        {isUrl && (
-          <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "24px" }}>
-            {phases.map((_, i) => (
-              <div key={i} style={{ height: "3px", width: "48px", borderRadius: "2px", background: i <= phase ? "#8B4513" : "#D4CBB8", transition: "background 0.5s ease" }} />
-            ))}
-          </div>
-        )}
-        <p style={{ fontSize: "13px", color: "#9C8B74", fontFamily: "system-ui, sans-serif", margin: 0, lineHeight: 1.7 }}>
-          {isUrl && phase === 0 ? "Reading the product page for accurate details…" : "Claude is crafting your personalized step-by-step guide"}
+
+        {/* Progress track */}
+        <div style={{ display: "flex", gap: "6px", justifyContent: "center", marginBottom: "24px" }}>
+          {allPhases.map((_, i) => (
+            <div key={i} style={{
+              height: "3px",
+              width: i < phase ? "40px" : i === phase ? "56px" : "24px",
+              borderRadius: "2px",
+              background: i < phase ? "#4ade80" : i === phase ? accentColor : "rgba(255,255,255,0.1)",
+              transition: "all 0.5s ease",
+              boxShadow: i === phase ? `0 0 8px ${accentColor}88` : "none",
+            }} />
+          ))}
+        </div>
+
+        {/* Terminal-style sub-label */}
+        <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", fontFamily: "'Courier New', monospace", margin: 0, lineHeight: 1.7 }}>
+          <span style={{ color: `${accentColor}88` }}>›</span>{" "}
+          {phase === 0 && isUrl  && "Reading product page for accurate specs…"}
+          {phase === 0 && !isUrl && "Matching product to knowledge base…"}
+          {phase === 1 && "Extracting features, steps, and warnings…"}
+          {phase === 2 && "Compiling into your personalized guide…"}
+          <span style={{ animation: "termBlink 1s step-end infinite" }}>▋</span>
         </p>
       </div>
     </div>
@@ -395,10 +613,7 @@ function GuideScreen({ product, onSelectSection, onBack, onOpenDrawer }) {
           </a>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", background: "#FFF8E7", border: "1px solid #F0D080", borderRadius: "13px", padding: "13px 16px", marginBottom: "32px" }}>
-          <span>⚠️</span>
-          <p style={{ margin: 0, fontSize: "12px", color: "#8B4513", fontFamily: "system-ui, sans-serif", lineHeight: 1.6 }}>AI-generated guide. Always verify critical steps with the official manufacturer documentation.</p>
-        </div>
+        <TrustBadge variant="light" />
 
         <p style={{ margin: "0 0 14px", fontSize: "10px", fontWeight: "700", letterSpacing: "1.8px", color: "#9C8B74", fontFamily: "system-ui, sans-serif" }}>SECTIONS</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
@@ -427,45 +642,285 @@ function GuideScreen({ product, onSelectSection, onBack, onOpenDrawer }) {
 
 
 // ─── SECTION SCREEN ───────────────────────────────────────────────────────────
+// ─── TRUST BADGE ──────────────────────────────────────────────────────────────
+// variant="light"  → cream background (GuideScreen)
+// variant="dark"   → dark glass background (SectionScreen)
+function TrustBadge({ variant = "light" }) {
+  const light = {
+    wrap: {
+      display: "inline-flex", alignItems: "center", gap: "10px",
+      background: "linear-gradient(135deg, rgba(186,230,253,0.35), rgba(167,243,208,0.3))",
+      border: "1px solid rgba(147,197,253,0.45)",
+      borderRadius: "100px",
+      padding: "7px 16px 7px 10px",
+      boxShadow: "0 1px 8px rgba(147,197,253,0.15), inset 0 1px 0 rgba(255,255,255,0.7)",
+    },
+    dot: { width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 0 3px rgba(52,211,153,0.2)" },
+    label: { fontSize: "11px", fontWeight: "700", color: "#0369a1", fontFamily: "system-ui, sans-serif", letterSpacing: "0.4px" },
+    sub:   { fontSize: "11px", color: "#64748b", fontFamily: "system-ui, sans-serif" },
+    divider: { width: "1px", height: "12px", background: "rgba(147,197,253,0.5)" },
+  };
+  const dark = {
+    wrap: {
+      display: "inline-flex", alignItems: "center", gap: "10px",
+      background: "rgba(255,255,255,0.05)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: "100px",
+      padding: "7px 16px 7px 10px",
+      backdropFilter: "blur(12px)",
+      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+    },
+    dot: { width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.2)" },
+    label: { fontSize: "11px", fontWeight: "700", color: "rgba(255,255,255,0.7)", fontFamily: "system-ui, sans-serif", letterSpacing: "0.4px" },
+    sub:   { fontSize: "11px", color: "rgba(255,255,255,0.3)", fontFamily: "system-ui, sans-serif" },
+    divider: { width: "1px", height: "12px", background: "rgba(255,255,255,0.12)" },
+  };
+  const s = variant === "dark" ? dark : light;
+
+  return (
+    <div style={{ textAlign: "center", margin: variant === "light" ? "0 0 28px" : "16px 0 0" }}>
+      <div style={s.wrap}>
+        {/* Sparkle icon */}
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-5.26L4 10l5.91-1.74Z"
+            fill={variant === "dark" ? "rgba(74,222,128,0.8)" : "rgba(52,211,153,0.9)"} />
+          <circle cx="19" cy="4" r="1.2" fill={variant === "dark" ? "rgba(74,222,128,0.5)" : "rgba(147,197,253,0.9)"} />
+          <circle cx="5"  cy="19" r="0.9" fill={variant === "dark" ? "rgba(74,222,128,0.4)" : "rgba(167,243,208,0.9)"} />
+        </svg>
+
+        <div style={s.dot} />
+        <span style={s.label}>AI-Crafted by Claude</span>
+        <div style={s.divider} />
+        <span style={s.sub}>Cross-check critical steps</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── CONFETTI ─────────────────────────────────────────────────────────────────
+function ConfettiBurst({ x, y, color, onDone }) {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const DPR = window.devicePixelRatio || 1;
+    canvas.width = 200 * DPR; canvas.height = 200 * DPR;
+    ctx.scale(DPR, DPR);
+    const COLORS = [color, "#a8e6cf", "#fff", "#ffd3b6", "#dcedc1", "#ffaaa5"];
+    const particles = Array.from({ length: 28 }, () => ({
+      x: 100, y: 100,
+      vx: (Math.random() - 0.5) * 14,
+      vy: (Math.random() - 0.65) * 14,
+      size: Math.random() * 5 + 3,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      rot: Math.random() * Math.PI * 2,
+      rotV: (Math.random() - 0.5) * 0.3,
+      shape: Math.random() > 0.4 ? "rect" : "circle",
+      alpha: 1,
+    }));
+    let raf;
+    const tick = () => {
+      ctx.clearRect(0, 0, 200, 200);
+      let alive = false;
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.45; p.vx *= 0.97;
+        p.rot += p.rotV; p.alpha -= 0.022;
+        if (p.alpha <= 0) return;
+        alive = true;
+        ctx.save(); ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        if (p.shape === "rect") ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        else { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill(); }
+        ctx.restore();
+      });
+      if (alive) raf = requestAnimationFrame(tick);
+      else onDone();
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [color, onDone]);
+  return (
+    <canvas ref={canvasRef}
+      style={{ position: "fixed", left: x - 100, top: y - 100, width: 200, height: 200, pointerEvents: "none", zIndex: 9999 }}
+    />
+  );
+}
+
+// ─── STEP CARD ────────────────────────────────────────────────────────────────
+const GLASS_KEYFRAMES = `
+@keyframes completePop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.22); }
+  70%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+@keyframes cardComplete {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+`;
+
+function StepCard({ step, index, accentColor }) {
+  const [done, setDone] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const [burst, setBurst] = useState(null);
+
+  const handleBadgeClick = useCallback((e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    if (!done) {
+      setBurst({ x: cx, y: cy, id: Date.now() });
+    }
+    setDone(d => !d);
+  }, [done]);
+
+  const completeBg = "rgba(134,239,172,0.18)";
+  const completeBorder = "rgba(74,222,128,0.45)";
+  const defaultBg = "rgba(255,255,255,0.12)";
+  const defaultBorder = "rgba(255,255,255,0.22)";
+
+  return (
+    <>
+      {burst && (
+        <ConfettiBurst key={burst.id} x={burst.x} y={burst.y} color={accentColor}
+          onDone={() => setBurst(null)} />
+      )}
+      <div
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onMouseLeave={() => setPressed(false)}
+        onTouchStart={() => setPressed(true)}
+        onTouchEnd={() => setPressed(false)}
+        style={{
+          marginBottom: "12px",
+          background: done ? completeBg : defaultBg,
+          border: `1px solid ${done ? completeBorder : defaultBorder}`,
+          borderRadius: "20px",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          boxShadow: done
+            ? "0 4px 24px rgba(74,222,128,0.15), inset 0 1px 0 rgba(255,255,255,0.25)"
+            : "0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.25)",
+          transform: pressed ? "scale(0.975)" : "scale(1)",
+          transition: "transform 0.12s cubic-bezier(0.34,1.56,0.64,1), background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {/* Shimmer top edge */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.6) 50%, transparent)",
+        }} />
+
+        <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "18px 18px 16px" }}>
+          {/* Clickable badge */}
+          <button
+            onClick={handleBadgeClick}
+            style={{
+              minWidth: "34px", height: "34px", borderRadius: "50%",
+              background: done
+                ? "linear-gradient(135deg, #4ade80, #22c55e)"
+                : `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`,
+              border: "none",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: done ? "16px" : "13px",
+              fontWeight: "700", color: "#fff", flexShrink: 0,
+              fontFamily: "system-ui, sans-serif",
+              boxShadow: done
+                ? "0 3px 14px rgba(74,222,128,0.5)"
+                : `0 3px 12px ${accentColor}55`,
+              cursor: "pointer",
+              marginTop: "1px",
+              transition: "background 0.35s ease, box-shadow 0.35s ease",
+              animation: done ? "completePop 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none",
+            }}
+          >
+            {done ? "✓" : index + 1}
+          </button>
+
+          <p style={{
+            margin: 0,
+            fontSize: "15px",
+            color: done ? "#166534" : "#3D2B1F",
+            lineHeight: 1.7,
+            fontFamily: "system-ui, sans-serif",
+            paddingTop: "6px",
+            textDecoration: done ? "none" : "none",
+            transition: "color 0.35s ease",
+            opacity: done ? 0.75 : 1,
+          }}>
+            {step}
+          </p>
+        </div>
+
+        {/* Completion progress stripe */}
+        {done && (
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0, height: "2px",
+            background: "linear-gradient(90deg, #4ade80, #22c55e 60%, transparent)",
+            opacity: 0.7,
+          }} />
+        )}
+      </div>
+    </>
+  );
+}
+
+// ─── SECTION SCREEN ───────────────────────────────────────────────────────────
 function SectionScreen({ section, product, onBack, onOpenDrawer }) {
   const meta = SECTION_META[section.title] || { icon: "📖", color: "#6366f1" };
+  const completedCount = 0; // tracked inside StepCards individually
+
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F0E8", display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "20px 28px", borderBottom: "1px solid #D4CBB8", position: "sticky", top: 0, background: "rgba(245,240,232,0.92)", backdropFilter: "blur(12px)", zIndex: 10 }}>
-        <button onClick={onBack} style={{ background: "rgba(101,76,45,0.07)", border: "1px solid #D4CBB8", borderRadius: "10px", color: "#6B5B45", cursor: "pointer", padding: "7px 13px", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontFamily: "system-ui, sans-serif", transition: "all 0.15s" }} onMouseEnter={e=>e.currentTarget.style.color="#2C2416"} onMouseLeave={e=>e.currentTarget.style.color="#6B5B45"}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a1025 0%, #0f1f2e 50%, #12201a 100%)", display: "flex", flexDirection: "column" }}>
+      <style>{GLASS_KEYFRAMES}</style>
+
+      {/* Ambient blobs */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "-15%", left: "-10%", width: "55vw", height: "55vw", borderRadius: "50%", background: `radial-gradient(circle, ${meta.color}22 0%, transparent 70%)`, filter: "blur(40px)" }} />
+        <div style={{ position: "absolute", bottom: "5%", right: "-10%", width: "45vw", height: "45vw", borderRadius: "50%", background: "radial-gradient(circle, rgba(74,222,128,0.12) 0%, transparent 70%)", filter: "blur(40px)" }} />
+      </div>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "sticky", top: 0, background: "rgba(15,20,30,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", zIndex: 10 }}>
+        <button onClick={onBack} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "10px", color: "rgba(255,255,255,0.7)", cursor: "pointer", padding: "7px 13px", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontFamily: "system-ui, sans-serif", transition: "all 0.15s" }}
+          onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+          onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}>
           <IconChevronLeft /> {product.productName.length > 22 ? product.productName.slice(0, 22) + "…" : product.productName}
         </button>
         <div style={{ flex: 1 }} />
-        <button onClick={onOpenDrawer} style={{ background: "rgba(101,76,45,0.07)", border: "1px solid #D4CBB8", borderRadius: "10px", color: "#6B5B45", cursor: "pointer", padding: "7px 10px", display: "flex", transition: "all 0.15s" }} onMouseEnter={e=>e.currentTarget.style.color="#2C2416"} onMouseLeave={e=>e.currentTarget.style.color="#6B5B45"}>
+        <button onClick={onOpenDrawer} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "10px", color: "rgba(255,255,255,0.7)", cursor: "pointer", padding: "7px 10px", display: "flex", transition: "all 0.15s" }}
+          onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+          onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}>
           <IconMenu />
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "32px 28px 60px", maxWidth: "700px", margin: "0 auto", width: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingBottom: "28px", borderBottom: "1px solid #D4CBB8" }}>
-          <div style={{ width: "54px", height: "54px", borderRadius: "15px", background: `${meta.color}15`, border: `1px solid ${meta.color}35`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", flexShrink: 0 }}>{meta.icon}</div>
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "32px 24px 80px", maxWidth: "680px", margin: "0 auto", width: "100%", position: "relative", zIndex: 1 }}>
+        {/* Section header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ width: "54px", height: "54px", borderRadius: "15px", background: `${meta.color}22`, border: `1px solid ${meta.color}44`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", flexShrink: 0 }}>{meta.icon}</div>
           <div>
-            <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "24px", fontWeight: "700", color: "#2C2416", margin: "0 0 4px" }}>{section.title}</h2>
-            <p style={{ margin: 0, fontSize: "13px", color: "#9C8B74", fontFamily: "system-ui, sans-serif" }}>{product.productName} · {section.steps.length} steps</p>
+            <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "24px", fontWeight: "700", color: "#fff", margin: "0 0 4px" }}>{section.title}</h2>
+            <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.45)", fontFamily: "system-ui, sans-serif" }}>
+              {product.productName} · {section.steps.length} steps · <span style={{ color: "rgba(74,222,128,0.8)" }}>tap ① to complete</span>
+            </p>
           </div>
         </div>
 
+        {/* Step cards */}
         {section.steps.map((step, i) => (
-          <div key={i} style={{ marginBottom: "14px", background: "#EDE8DC", border: "1px solid #F5F0E8", borderRadius: "16px", overflow: "hidden" }}>
-            <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "18px 18px 14px" }}>
-              <div style={{ minWidth: "30px", height: "30px", borderRadius: "50%", background: `linear-gradient(135deg, ${meta.color}, ${meta.color}80)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "700", color: "#fff", flexShrink: 0, fontFamily: "system-ui, sans-serif", boxShadow: `0 3px 10px ${meta.color}35`, marginTop: "1px" }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: "15px", color: "#3D2B1F", lineHeight: 1.7, fontFamily: "system-ui, sans-serif", paddingTop: "4px" }}>{step}</p>
-            </div>
-
-          </div>
+          <StepCard key={i} step={step} index={i} accentColor={meta.color} />
         ))}
 
-        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", background: "#FFF8E7", border: "1px solid #F0D080", borderRadius: "13px", padding: "13px 16px", marginTop: "12px" }}>
-          <span>⚠️</span>
-          <p style={{ margin: 0, fontSize: "12px", color: "#8B4513", fontFamily: "system-ui, sans-serif", lineHeight: 1.6 }}>AI-generated. Verify with manufacturer documentation for accuracy.</p>
-        </div>
+        <TrustBadge variant="dark" />
       </div>
     </div>
   );
