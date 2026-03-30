@@ -305,7 +305,7 @@ function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
         }}>
           Manuals<span style={{ WebkitTextFillColor: "rgba(99,102,241,1)" }}>.ai</span>
         </h1>
-        <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "14px", color: "rgba(255,255,255,0.4)", margin: "0 0 40px", textAlign: "center", maxWidth: "360px", lineHeight: 1.7 }}>
+        <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "14px", color: "rgba(255,255,255,0.65)", margin: "0 0 40px", textAlign: "center", maxWidth: "360px", lineHeight: 1.7 }}>
           Drop a product name, URL, or snap a photo —<br />get your guide in seconds.
         </p>
 
@@ -316,9 +316,9 @@ function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
             { label: "Instant guides", icon: "📖" },
             { label: "Any product", icon: "🔍" },
           ].map(({ label, icon }) => (
-            <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "100px", padding: "5px 14px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <div key={label} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "100px", padding: "5px 14px", display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontSize: "12px" }}>{icon}</span>
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", fontFamily: "system-ui, sans-serif", letterSpacing: "0.3px" }}>{label}</span>
+              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.75)", fontFamily: "system-ui, sans-serif", letterSpacing: "0.3px" }}>{label}</span>
             </div>
           ))}
         </div>
@@ -327,9 +327,9 @@ function HomeScreen({ onSearch, onOpenDrawer, error, onDismissError }) {
         <div style={{ display: "flex", gap: "7px", flexWrap: "wrap", justifyContent: "center" }}>
           {["Instant Pot Duo 7-in-1", "Dyson V15 Detect", "IKEA KALLAX"].map(hint => (
             <button key={hint} onClick={() => { setQuery(hint); setTimeout(() => inputRef.current?.focus(), 0); }}
-              style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "100px", padding: "5px 12px", color: "rgba(255,255,255,0.45)", fontSize: "12px", fontFamily: "system-ui, sans-serif", cursor: "pointer", transition: "all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,102,241,0.18)"; e.currentTarget.style.color = "rgba(255,255,255,0.85)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(99,102,241,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.2)"; }}
+              style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "100px", padding: "5px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontFamily: "system-ui, sans-serif", cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,102,241,0.22)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.6)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(99,102,241,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)"; }}
             >
               {hint}
             </button>
@@ -543,13 +543,13 @@ function LoadingScreen({ query }) {
           <p style={{ margin: "0 0 4px", fontSize: "11px", letterSpacing: "2.5px", color: `${accentColor}bb`, fontFamily: "system-ui, sans-serif", fontWeight: "700" }}>
             STEP {phase + 1} OF {allPhases.length}
           </p>
-          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "22px", color: "#fff", margin: "0 0 12px", fontWeight: "700" }}>
+          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "22px", color: "#E2FF6F", margin: "0 0 12px", fontWeight: "700", textShadow: "0 0 20px rgba(226,255,111,0.25)" }}>
             {allPhases[phase]}{dots}
           </h2>
         </div>
 
         {/* Query label */}
-        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)", fontFamily: "system-ui, sans-serif", margin: "0 0 28px", fontStyle: "italic" }}>
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.55)", fontFamily: "system-ui, sans-serif", margin: "0 0 28px", fontStyle: "italic" }}>
           "{query.length > 52 ? query.slice(0, 52) + "…" : query}"
         </p>
 
@@ -847,13 +847,12 @@ function StepCard({ step, index, accentColor }) {
           <p style={{
             margin: 0,
             fontSize: "15px",
-            color: done ? "#166534" : "#3D2B1F",
+            color: done ? "#86efac" : "#FFFFFF",
             lineHeight: 1.7,
             fontFamily: "system-ui, sans-serif",
             paddingTop: "6px",
-            textDecoration: done ? "none" : "none",
             transition: "color 0.35s ease",
-            opacity: done ? 0.75 : 1,
+            opacity: done ? 0.7 : 1,
           }}>
             {step}
           </p>
@@ -908,9 +907,9 @@ function SectionScreen({ section, product, onBack, onOpenDrawer }) {
         <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div style={{ width: "54px", height: "54px", borderRadius: "15px", background: `${meta.color}22`, border: `1px solid ${meta.color}44`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", flexShrink: 0 }}>{meta.icon}</div>
           <div>
-            <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "24px", fontWeight: "700", color: "#fff", margin: "0 0 4px" }}>{section.title}</h2>
-            <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.45)", fontFamily: "system-ui, sans-serif" }}>
-              {product.productName} · {section.steps.length} steps · <span style={{ color: "rgba(74,222,128,0.8)" }}>tap ① to complete</span>
+            <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "24px", fontWeight: "700", color: "#E2FF6F", margin: "0 0 4px", textShadow: "0 0 24px rgba(226,255,111,0.3)" }}>{section.title}</h2>
+            <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.65)", fontFamily: "system-ui, sans-serif" }}>
+              {product.productName} · {section.steps.length} steps · <span style={{ color: "rgba(74,222,128,0.9)" }}>tap ① to complete</span>
             </p>
           </div>
         </div>
