@@ -543,7 +543,7 @@ function LoadingScreen({ query }) {
           <p style={{ margin: "0 0 4px", fontSize: "11px", letterSpacing: "2.5px", color: `${accentColor}bb`, fontFamily: "system-ui, sans-serif", fontWeight: "700" }}>
             STEP {phase + 1} OF {allPhases.length}
           </p>
-          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "22px", color: "#E2FF6F", margin: "0 0 12px", fontWeight: "700", textShadow: "0 0 20px rgba(226,255,111,0.25)" }}>
+          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "22px", color: "#E2FF6F", margin: "0 0 12px", fontWeight: "700" }}>
             {allPhases[phase]}{dots}
           </h2>
         </div>
@@ -799,7 +799,7 @@ function StepCard({ step, index, accentColor }) {
         style={{
           marginBottom: "12px",
           background: done ? completeBg : defaultBg,
-          border: `1px solid ${done ? completeBorder : defaultBorder}`,
+          border: `1px solid ${done ? completeBorder : "rgba(255,255,255,0.1)"}`,
           borderRadius: "20px",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
@@ -847,6 +847,7 @@ function StepCard({ step, index, accentColor }) {
           <p style={{
             margin: 0,
             fontSize: "15px",
+            fontWeight: 500,
             color: done ? "#86efac" : "#FFFFFF",
             lineHeight: 1.7,
             fontFamily: "system-ui, sans-serif",
@@ -907,7 +908,7 @@ function SectionScreen({ section, product, onBack, onOpenDrawer }) {
         <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div style={{ width: "54px", height: "54px", borderRadius: "15px", background: `${meta.color}22`, border: `1px solid ${meta.color}44`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", flexShrink: 0 }}>{meta.icon}</div>
           <div>
-            <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "24px", fontWeight: "700", color: "#E2FF6F", margin: "0 0 4px", textShadow: "0 0 24px rgba(226,255,111,0.3)" }}>{section.title}</h2>
+            <h2 style={{ fontFamily: "'Georgia', serif", fontSize: "24px", fontWeight: "700", color: "#E2FF6F", margin: "0 0 4px" }}>{section.title}</h2>
             <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.65)", fontFamily: "system-ui, sans-serif" }}>
               {product.productName} · {section.steps.length} steps · <span style={{ color: "rgba(74,222,128,0.9)" }}>tap ① to complete</span>
             </p>
